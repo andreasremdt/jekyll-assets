@@ -1,0 +1,20 @@
+{
+  "sass": {
+    "inputDir": "assets/sass",
+    "outputDir": "css",
+    "options": {
+      "outputStyle": "compressed"
+    }
+  },
+  "images": {
+    "inputDir": "assets/images",
+    "outputDir": "images",
+    "options": {
+      "webp": {
+        "quality": 75,
+        "preset": "default"
+      },
+      "others": {}
+    }
+  }
+}

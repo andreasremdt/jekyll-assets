@@ -1,0 +1,19 @@
+{
+  "name": "jekyll-assets",
+  "version": "1.0.0",
+  "description": "A asset pipeline for Jekyll sites",
+  "main": "index.js",
+  "scripts": {
+    "compile": "gulp",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andreas Remdt",
+  "license": "ISC",
+  "devDependencies": {
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-image": "^4.3.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-webp": "^3.0.0"
+  }
+}
