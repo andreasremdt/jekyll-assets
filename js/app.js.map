@@ -1,0 +1,1 @@
+{"version":3,"sources":["testing.js"],"names":["User","user","console","log"],"mappings":"iYAAMA,6GAEF,MAAO,mBAILC,KAAO,WACXC,QAAQC,IAAI","file":"app.js","sourcesContent":["class User {\n  static log() {\n    return 'Andreas';\n  }\n}\n\nconst user = () => {\n  console.log('Hello');\n};"]}

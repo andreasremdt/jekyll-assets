@@ -3,8 +3,20 @@
     "inputDir": "assets/sass",
     "outputDir": "css",
     "options": {
-      "outputStyle": "compressed"
+      "outputStyle": "compressed",
+      "sourcemap": true
     }
+  },
+  "js": {
+    "src": "assets/js",
+    "output": {
+      "dir": "js",
+      "name": "app.js"
+    },
+    "minify": true,
+    "concat": true,
+    "babel": true,
+    "sourcemaps": true
   },
   "images": {
     "inputDir": "assets/images",
@@ -16,5 +28,10 @@
       },
       "others": {}
     }
+  },
+  "jekyll": {
+    "baseDir": "_site",
+    "args": ["--watch", "--incremental", "--drafts"],
+    "port": 4000
   }
 }
