@@ -1,0 +1,1 @@
+{"version":3,"sources":["test.scss"],"names":[],"mappings":"AAEA,KACE,qBACA,aACA,8BACA,wBAAA,AAAgB,qBAAhB,AAAgB,eAAA,CACjB","file":"styles.min.css","sourcesContent":["$color: red;\n\nbody {\n  background-color: $color;\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  appearance: none;\n}"]}

@@ -19,9 +19,11 @@ const image = require('gulp-image');
 const util = require('gulp-util');
 const babel = require('gulp-babel');
 const concat = require('gulp-concat');
+const rename = require('gulp-rename');
 const uglify = require('gulp-uglify-es').default;
 const gulpif = require('gulp-if');
 const sourcemaps = require('gulp-sourcemaps');
+const autoprefixer = require('gulp-autoprefixer');
 const path = require('path');
 const del = require('del');
 const child = require('child_process');
@@ -33,14 +35,22 @@ const config = require('./config.json');
 
 
 /**
- * Compiles SASS into CSS using compression,
- * autoprefixr and other plugins.
+ * Processes the CSS. If specified in the config, can:
+ * 
+ * a) Generate sourcemaps
+ * b) Minify the output
+ * c) Prefix newer CSS properties
+ * d) Compile SASS / SCSS into CSS
  */
-gulp.task('sass', () => {
+gulp.task('css', () => {
   return gulp
-    .src(path.join(__dirname, config.sass.inputDir, '**', '*.{scss,sass}'))
+    .src(path.join(__dirname, config.sass.src))
+    .pipe(gulpif(config.sass.sourcemap, sourcemaps.init()))
     .pipe(sass(config.sass.options).on('error', sass.logError))
-    .pipe(gulp.dest(path.join(__dirname, config.sass.outputDir)));
+    .pipe(gulpif(config.sass.prefix, autoprefixer({ browsers: config.sass.browsers })))
+    .pipe(rename(config.sass.output.name))
+    .pipe(gulpif(config.sass.sourcemap, sourcemaps.write('.')))
+    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.sass.output.dir)));
 });
 
 
@@ -56,12 +66,12 @@ gulp.task('sass', () => {
 gulp.task('js', () => {
   return gulp
     .src(path.join(__dirname, config.js.src, '**', '*.js'))
-    .pipe(gulpif(config.js.sourcemaps, sourcemaps.init()))
+    .pipe(gulpif(config.js.sourcemap, sourcemaps.init()))
     .pipe(gulpif(config.js.babel, babel()))
     .pipe(gulpif(config.js.concat, concat(config.js.output.name)))
-    .pipe(gulpif(config.js.minify, uglify()))
-    .pipe(gulpif(config.js.sourcemaps, sourcemaps.write('.')))
-    .pipe(gulp.dest(path.join(__dirname, config.js.output.dir)));
+    .pipe(gulpif(config.js.minify, uglify())) 
+    .pipe(gulpif(config.js.sourcemap, sourcemaps.write('.')))
+    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.js.output.dir)));
 });
 
 
@@ -98,7 +108,7 @@ gulp.task('images', () => {
  */
 gulp.task('clean', () => {
   return del([
-    path.join(__dirname, config.sass.outputDir),
+    path.join(__dirname, config.sass.output.dir),
     path.join(__dirname, config.images.outputDir),
     path.join(__dirname, config.js.output.dir),
     path.join(__dirname, config.jekyll.baseDir)
@@ -112,7 +122,7 @@ gulp.task('clean', () => {
  * the output (whether error or info) to the console.
  */
 gulp.task('jekyll', () => {
-  const jekyll = child.spawn('jekyll', ['build'].concat(config.jekyll.args));
+  const jekyll = child.spawn('jekyll', ['build'].concat(config.jekyll.args), { cwd: config.jekyll.baseDir });
 
   const logger = (buffer) => {
     buffer.toString()
@@ -132,7 +142,7 @@ gulp.task('jekyll', () => {
  */
 gulp.task('serve', () => {
   browserSync.init({
-    files: [`${config.jekyll.baseDir}/**`],
+    files: [path.join(__dirname, config.jekyll.baseDir, config.jekyll.deployDir, '**')],
     port: config.jekyll.port,
     server: {
       baseDir: config.jekyll.baseDir
@@ -141,4 +151,4 @@ gulp.task('serve', () => {
 });
 
 gulp.task('develop', ['jekyll', 'serve']);
-gulp.task('default', ['sass', 'webp', 'images']);
+gulp.task('default', ['css', 'webp', 'images']);

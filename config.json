@@ -1,11 +1,16 @@
 {
   "sass": {
-    "inputDir": "assets/sass",
-    "outputDir": "css",
+    "src": "assets/sass/test.scss",
+    "output": {
+      "dir": "css",
+      "name": "styles.min.css"
+    },
     "options": {
-      "outputStyle": "compressed",
-      "sourcemap": true
-    }
+      "outputStyle": "compressed"
+    },
+    "sourcemap": true,
+    "prefix": true,
+    "browsers": ["last 5 versions"]
   },
   "js": {
     "src": "assets/js",
@@ -16,7 +21,7 @@
     "minify": true,
     "concat": true,
     "babel": true,
-    "sourcemaps": true
+    "sourcemap": true
   },
   "images": {
     "inputDir": "assets/images",
@@ -30,7 +35,8 @@
     }
   },
   "jekyll": {
-    "baseDir": "_site",
+    "deployDir": "_site",
+    "baseDir": "jekyll",
     "args": ["--watch", "--incremental", "--drafts"],
     "port": 4000
   }
