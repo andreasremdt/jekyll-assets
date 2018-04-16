@@ -1,6 +1,7 @@
 {
   "sass": {
-    "src": "assets/sass/test.scss",
+    "src": "assets/sass",
+    "filename": "styles.scss",
     "output": {
       "dir": "css",
       "name": "styles.min.css"

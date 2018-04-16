@@ -44,7 +44,7 @@ const config = require('./config.json');
  */
 gulp.task('css', () => {
   return gulp
-    .src(path.join(__dirname, config.sass.src))
+    .src(path.join(__dirname, config.sass.src, filename))
     .pipe(gulpif(config.sass.sourcemap, sourcemaps.init()))
     .pipe(sass(config.sass.options).on('error', sass.logError))
     .pipe(gulpif(config.sass.prefix, autoprefixer({ browsers: config.sass.browsers })))
@@ -69,7 +69,8 @@ gulp.task('js', () => {
     .pipe(gulpif(config.js.sourcemap, sourcemaps.init()))
     .pipe(gulpif(config.js.babel, babel()))
     .pipe(gulpif(config.js.concat, concat(config.js.output.name)))
-    .pipe(gulpif(config.js.minify, uglify())) 
+    .pipe(gulpif(config.js.minify, uglify()))
+    .pipe(gulpif(config.js.minify, rename({ suffix: '.min' })))
     .pipe(gulpif(config.js.sourcemap, sourcemaps.write('.')))
     .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.js.output.dir)));
 });
@@ -143,5 +144,14 @@ gulp.task('serve', () => {
   });
 });
 
-gulp.task('develop', ['jekyll', 'serve']);
+
+
+gulp.task('watch', () => {
+  gulp.watch(path.join(__dirname, config.images.src, '**', '*.{png,gif,jpg,jpeg}'), ['images']);
+  gulp.watch(path.join(__dirname, config.sass.src, '**', '*.{scss,sass,css}'), ['css']);
+  gulp.watch(path.join(__dirname, config.js.src, '**', '*.js'), ['js']);
+});
+
+
 gulp.task('build', ['css', 'js', 'images', 'jekyll']);
+gulp.task('develop', ['build', 'serve', 'watch']);
