@@ -24,14 +24,13 @@
     "sourcemap": true
   },
   "images": {
-    "inputDir": "assets/images",
-    "outputDir": "images",
+    "src": "assets/images",
+    "output": "images",
+    "webp": true,
     "options": {
-      "webp": {
-        "quality": 75,
-        "preset": "default"
-      },
-      "others": {}
+      "progressive": true,
+      "optimizationLevel": 5,
+      "svgoPlugins": [{ "removeViewBox": true }]
     }
   },
   "jekyll": {

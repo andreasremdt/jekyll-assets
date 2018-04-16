@@ -14,10 +14,10 @@
 // Load packages and dependencies
 const gulp = require('gulp');
 const sass = require('gulp-sass');
-const webp = require('gulp-webp');
-const image = require('gulp-image');
+const imagemin = require('gulp-imagemin');
 const util = require('gulp-util');
 const babel = require('gulp-babel');
+const webp = require('gulp-webp');
 const concat = require('gulp-concat');
 const rename = require('gulp-rename');
 const uglify = require('gulp-uglify-es').default;
@@ -77,27 +77,20 @@ gulp.task('js', () => {
 
 
 /**
- * Converts JPG, PNG and GIF into the faster and
- * web-optimized WEBP format from Google.
- */
-gulp.task('webp', () => {
-  return gulp
-    .src(path.join(__dirname, config.images.inputDir, '**', '*.{png,gif,jpg,jpeg}'))
-    .pipe(webp(config.images.options.webp))
-    .pipe(gulp.dest(path.join(__dirname, config.images.outputDir)));
-});
-
-
-
-/**
  * Compresses JPG and PNG images to save resources
  * and to speed up the page speed.
  */
 gulp.task('images', () => {
+  del([
+    path.join(__dirname, config.jekyll.baseDir, config.images.output)
+  ]);
+
   return gulp
-    .src(path.join(__dirname, config.images.inputDir, '**', '*.{png,gif,jpg,jpeg}'))
-    .pipe(image(config.images.options.others))
-    .pipe(gulp.dest(path.join(__dirname, config.images.outputDir)));
+    .src(path.join(__dirname, config.images.src, '**', '*.{png,gif,jpg,jpeg}'))
+    .pipe(imagemin(config.images.options))
+    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.images.output)))
+    .pipe(gulpif(config.images.webp, webp()))
+    .pipe(gulpif(config.images.webp, gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.images.output))));
 });
 
 
@@ -108,10 +101,10 @@ gulp.task('images', () => {
  */
 gulp.task('clean', () => {
   return del([
-    path.join(__dirname, config.sass.output.dir),
-    path.join(__dirname, config.images.outputDir),
-    path.join(__dirname, config.js.output.dir),
-    path.join(__dirname, config.jekyll.baseDir)
+    path.join(__dirname, config.jekyll.baseDir, config.sass.output.dir),
+    path.join(__dirname, config.jekyll.baseDir, config.images.output),
+    path.join(__dirname, config.jekyll.baseDir, config.js.output.dir),
+    path.join(__dirname, config.jekyll.baseDir, config.jekyll.deployDir)
   ]);
 });
 
@@ -151,4 +144,4 @@ gulp.task('serve', () => {
 });
 
 gulp.task('develop', ['jekyll', 'serve']);
-gulp.task('default', ['css', 'webp', 'images']);
+gulp.task('build', ['css', 'js', 'images', 'jekyll']);
