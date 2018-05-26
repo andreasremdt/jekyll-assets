@@ -3,3 +3,5 @@
  */
 
 console.log('Hello Jekyll!');
+
+const test = () => 1 * 1;

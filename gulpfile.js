@@ -11,112 +11,82 @@
 
 'use strict';
 
-// Load packages and dependencies
-const gulp = require('gulp');
-const sass = require('gulp-sass');
-const imagemin = require('gulp-imagemin');
-const util = require('gulp-util');
-const babel = require('gulp-babel');
-const webp = require('gulp-webp');
-const concat = require('gulp-concat');
-const rename = require('gulp-rename');
-const uglify = require('gulp-uglify-es').default;
-const gulpif = require('gulp-if');
-const sourcemaps = require('gulp-sourcemaps');
+const gulp          = require('gulp');
+const sass          = require('gulp-sass');
+const imagemin      = require('gulp-imagemin');
+const util          = require('gulp-util');
+const babel         = require('gulp-babel');
+const webp          = require('gulp-webp');
+const concat        = require('gulp-concat');
+const purgecss      = require('gulp-purgecss');
+const rename        = require('gulp-rename');
+const uglify        = require('gulp-uglify-es').default;
+const gulpif        = require('gulp-if');
+const sourcemaps    = require('gulp-sourcemaps');
 const autoprefixer = require('gulp-autoprefixer');
-const path = require('path');
-const del = require('del');
-const child = require('child_process');
-const browserSync = require('browser-sync').create();
-
-// Load local config
-const config = require('./config.json');
+const path          = require('path');
+const del           = require('del');
+const child         = require('child_process');
+const browserSync   = require('browser-sync').create();
+const config        = require('./config.prod.js');
 
 
 
-/**
- * Processes the CSS. If specified in the config, can:
- * 
- * a) Generate sourcemaps
- * b) Minify the output
- * c) Prefix newer CSS properties
- * d) Compile SASS / SCSS into CSS
- */
 gulp.task('css', () => {
   return gulp
-    .src(path.join(__dirname, config.sass.src, filename))
-    .pipe(gulpif(config.sass.sourcemap, sourcemaps.init()))
-    .pipe(sass(config.sass.options).on('error', sass.logError))
-    .pipe(gulpif(config.sass.prefix, autoprefixer({ browsers: config.sass.browsers })))
-    .pipe(rename(config.sass.output.name))
-    .pipe(gulpif(config.sass.sourcemap, sourcemaps.write('.')))
-    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.sass.output.dir)));
+    .src(path.join(__dirname, config.css.input.path, config.css.input.filename))
+    .pipe(gulpif(config.css.options.sourcemap, sourcemaps.init()))
+    .pipe(sass({ outputStyle: config.css.options.compressed ? 'compressed' : 'nested' }).on('error', sass.logError))
+    .pipe(gulpif(config.css.options.purge, purgecss({ content: ['**/*.html'] })))
+    .pipe(gulpif(config.css.options.prefixed, autoprefixer({ browsers: config.css.options.browserSupport })))
+    .pipe(rename(config.css.output.filename))
+    .pipe(gulpif(config.css.options.sourcemap, sourcemaps.write('.')))
+    .pipe(gulp.dest(path.join(__dirname, config.css.output.path)));
 });
 
 
 
-/**
- * Processes the JavaScript. If specified in the config, can:
- * 
- * a) Generate sourcemaps
- * b) Compile ES2015 or higher into ES5
- * c) Concat many JS files into a single file
- * d) Minify the output
- */
 gulp.task('js', () => {
   return gulp
-    .src(path.join(__dirname, config.js.src, '**', '*.js'))
-    .pipe(gulpif(config.js.sourcemap, sourcemaps.init()))
-    .pipe(gulpif(config.js.babel, babel()))
-    .pipe(gulpif(config.js.concat, concat(config.js.output.name)))
-    .pipe(gulpif(config.js.minify, uglify()))
-    .pipe(gulpif(config.js.minify, rename({ suffix: '.min' })))
-    .pipe(gulpif(config.js.sourcemap, sourcemaps.write('.')))
-    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.js.output.dir)));
+    .src(path.join(__dirname, config.js.input.path, config.js.input.filename))
+    .pipe(gulpif(config.js.options.sourcemap, sourcemaps.init()))
+    .pipe(gulpif(config.js.options.babel, babel()))
+    .pipe(gulpif(config.js.options.concat, concat(config.js.output.filename)))
+    .pipe(gulpif(config.js.options.minify, uglify()))
+    .pipe(gulpif(config.js.options.sourcemap, sourcemaps.write('.')))
+    .pipe(gulp.dest(path.join(__dirname, config.js.output.path)));
 });
 
 
 
-/**
- * Compresses JPG and PNG images to save resources
- * and to speed up the page speed.
- */
 gulp.task('images', () => {
   del([
-    path.join(__dirname, config.jekyll.baseDir, config.images.output)
+    path.join(__dirname, config.images.output.path)
   ]);
 
   return gulp
-    .src(path.join(__dirname, config.images.src, '**', '*.{png,gif,jpg,jpeg}'))
-    .pipe(imagemin(config.images.options))
-    .pipe(gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.images.output)))
-    .pipe(gulpif(config.images.webp, webp()))
-    .pipe(gulpif(config.images.webp, gulp.dest(path.join(__dirname, config.jekyll.baseDir, config.images.output))));
+    .src(path.join(__dirname, config.images.input.path, config.images.input.filename))
+    .pipe(gulpif(config.images.options.compress, imagemin(config.images.options.imagemin)))
+    .pipe(gulp.dest(path.join(__dirname, config.images.output.path)))
+    .pipe(gulpif(config.images.options.webp, webp()))
+    .pipe(gulpif(config.images.options.webp, gulp.dest(path.join(__dirname, config.images.output.path))));
 });
 
 
 
-/**
- * Deletes the generated files and folders and cleans
- * the assets.
- */
 gulp.task('clean', () => {
   return del([
-    path.join(__dirname, config.jekyll.baseDir, config.sass.output.dir),
-    path.join(__dirname, config.jekyll.baseDir, config.images.output),
-    path.join(__dirname, config.jekyll.baseDir, config.js.output.dir),
-    path.join(__dirname, config.jekyll.baseDir, config.jekyll.deployDir)
+    path.join(__dirname, config.css.output.path),
+    path.join(__dirname, config.images.output.path),
+    path.join(__dirname, config.js.output.path),
+    path.join(__dirname, config.jekyll.deployDir),
   ]);
 });
 
 
 
-/**
- * Runs the Jekyll build command with given commands and logs
- * the output (whether error or info) to the console.
- */
 gulp.task('jekyll', () => {
-  const jekyll = child.spawn('jekyll', ['build'].concat(config.jekyll.args), { cwd: config.jekyll.baseDir });
+  const jekyll = child.spawn('jekyll', ['build'].concat(config.jekyll.args), { cwd: './' });
 
   const logger = (buffer) => {
     buffer.toString()
@@ -130,16 +100,12 @@ gulp.task('jekyll', () => {
 
 
 
-/**
- * Runs the BrowserSync server to serve the site directory
- * (usually _site). Reloads automatically.
- */
 gulp.task('serve', () => {
   browserSync.init({
-    files: [path.join(__dirname, config.jekyll.baseDir, config.jekyll.deployDir, '**')],
+    files: [path.join(__dirname, config.jekyll.deployDir, '**')],
     port: config.jekyll.port,
     server: {
-      baseDir: config.jekyll.baseDir
+      baseDir: path.join(__dirname, config.jekyll.deployDir)
     }
   });
 });
@@ -147,9 +113,9 @@ gulp.task('serve', () => {
 
 
 gulp.task('watch', () => {
-  gulp.watch(path.join(__dirname, config.images.src, '**', '*.{png,gif,jpg,jpeg}'), ['images']);
-  gulp.watch(path.join(__dirname, config.sass.src, '**', '*.{scss,sass,css}'), ['css']);
-  gulp.watch(path.join(__dirname, config.js.src, '**', '*.js'), ['js']);
+  gulp.watch(path.join(__dirname, config.images.input.path, config.images.input.filename), ['images']);
+  gulp.watch(path.join(__dirname, config.css.input.path, '**', '*.{scss,sass,css}'), ['css']);
+  gulp.watch(path.join(__dirname, config.js.input.path, '**', '*.js'), ['js']);
 });
 
 

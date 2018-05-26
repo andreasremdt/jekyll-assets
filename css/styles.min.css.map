@@ -1,0 +1,1 @@
+{"version":3,"sources":["styles.scss"],"names":[],"mappings":"AAEA,KACE,wBACA,WAAY,CACb","file":"styles.min.css","sourcesContent":["/** Put your SASS / SCSS / CSS in here */\n\nbody {\n  background-color: tomato;\n  color: white;\n}"]}
