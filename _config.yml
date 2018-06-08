@@ -31,10 +31,11 @@ markdown: kramdown
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
 exclude:
+  - assets/
   - Gemfile
   - Gemfile.lock
   - node_modules
-  - config.*.js
+  - config.js
   - .babelrc
   - gulpfile.js
   - package-lock.json

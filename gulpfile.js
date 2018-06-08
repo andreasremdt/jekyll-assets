@@ -1,38 +1,24 @@
-/**
- * Jekyll Assets
- * 
- * This is the main configuration file for the asset pipeline.
- * It configures all Gulp tasks and processes images, JavaScript
- * and SASS files into production-ready code.
- * 
- * Copyright (c) 2018 Andreas Remdt
- * MIT License
- */
-
 'use strict';
 
-const gulp          = require('gulp');
-const sass          = require('gulp-sass');
-const imagemin      = require('gulp-imagemin');
-const util          = require('gulp-util');
-const babel         = require('gulp-babel');
-const webp          = require('gulp-webp');
-const concat        = require('gulp-concat');
-const purgecss      = require('gulp-purgecss');
-const rename        = require('gulp-rename');
-const uglify        = require('gulp-uglify-es').default;
-const gulpif        = require('gulp-if');
-const sourcemaps    = require('gulp-sourcemaps');
-const autoprefixer = require('gulp-autoprefixer');
-const path          = require('path');
-const del           = require('del');
-const child         = require('child_process');
-const browserSync   = require('browser-sync').create();
-const config        = require('./config.prod.js');
+var path = require('path');
+var gulp = require('gulp');
+var sass = require('gulp-sass');
+var purgecss = require('gulp-purgecss');
+var autoprefixer = require('gulp-autoprefixer');
+var sourcemaps = require('gulp-sourcemaps');
+var rename = require('gulp-rename');
+var gulpif = require('gulp-if');
+var babel = require('gulp-babel');
+var concat = require('gulp-concat');
+var uglify = require('gulp-uglify-es').default;
+var del = require('del');
+var webp = require('gulp-webp');
+var imagemin = require('gulp-imagemin');
+var child = require('child_process');
+var util = require('util');
+var config = require('./config.js');
 
-
-
-gulp.task('css', () => {
+gulp.task('css', function() {
   return gulp
     .src(path.join(__dirname, config.css.input.path, config.css.input.filename))
     .pipe(gulpif(config.css.options.sourcemap, sourcemaps.init()))
@@ -44,9 +30,7 @@ gulp.task('css', () => {
     .pipe(gulp.dest(path.join(__dirname, config.css.output.path)));
 });
 
-
-
-gulp.task('js', () => {
+gulp.task('js', function() {
   return gulp
     .src(path.join(__dirname, config.js.input.path, config.js.input.filename))
     .pipe(gulpif(config.js.options.sourcemap, sourcemaps.init()))
@@ -57,9 +41,7 @@ gulp.task('js', () => {
     .pipe(gulp.dest(path.join(__dirname, config.js.output.path)));
 });
 
-
-
-gulp.task('images', () => {
+gulp.task('images', function() {
   del([
     path.join(__dirname, config.images.output.path)
   ]);
@@ -72,9 +54,7 @@ gulp.task('images', () => {
     .pipe(gulpif(config.images.options.webp, gulp.dest(path.join(__dirname, config.images.output.path))));
 });
 
-
-
-gulp.task('clean', () => {
+gulp.task('clean', function() {
   return del([
     path.join(__dirname, config.css.output.path),
     path.join(__dirname, config.images.output.path),
@@ -83,41 +63,41 @@ gulp.task('clean', () => {
   ]);
 });
 
+gulp.task('jekyll-build', function(done) {
+  var jekyll = child.spawn('jekyll', ['build', '--incremental'], { cwd: './' });
 
-
-gulp.task('jekyll', () => {
-  const jekyll = child.spawn('jekyll', ['build'].concat(config.jekyll.args), { cwd: './' });
-
-  const logger = (buffer) => {
+  var logger = function log(buffer) {
     buffer.toString()
       .split(/\n/)
-      .forEach((message) => util.log('Jekyll: ' + message));
+      .forEach(message => util.log('Jekyll: ' + message));
   };
 
   jekyll.stdout.on('data', logger);
   jekyll.stderr.on('data', logger);
+
+  done();
 });
 
+gulp.task('jekyll-serve', function(done) {
+  var jekyll = child.spawn('jekyll', ['serve', '--incremental', '--watch', '--drafts'], { cwd: './' });
 
+  var logger = function log(buffer) {
+    buffer.toString()
+      .split(/\n/)
+      .forEach(message => util.log('Jekyll: ' + message));
+  };
 
-gulp.task('serve', () => {
-  browserSync.init({
-    files: [path.join(__dirname, config.jekyll.deployDir, '**')],
-    port: config.jekyll.port,
-    server: {
-      baseDir: path.join(__dirname, config.jekyll.deployDir)
-    }
-  });
+  jekyll.stdout.on('data', logger);
+  jekyll.stderr.on('data', logger);
+
+  done();
 });
 
-
-
-gulp.task('watch', () => {
-  gulp.watch(path.join(__dirname, config.images.input.path, config.images.input.filename), ['images']);
-  gulp.watch(path.join(__dirname, config.css.input.path, '**', '*.{scss,sass,css}'), ['css']);
-  gulp.watch(path.join(__dirname, config.js.input.path, '**', '*.js'), ['js']);
+gulp.task('watch', function() {
+  gulp.watch(path.join(__dirname, config.css.input.path, '**', '*.{css,scss,sass,less}'), gulp.parallel('css'));
+  gulp.watch(path.join(__dirname, config.js.input.path, '**', '*.js'), gulp.parallel('js'));
+  gulp.watch(path.join(__dirname, config.images.input.path, '**', '*'), gulp.parallel('images'));
 });
 
-
-gulp.task('build', ['css', 'js', 'images', 'jekyll']);
-gulp.task('develop', ['build', 'serve', 'watch']);
+gulp.task('develop', gulp.series('clean', 'css', 'js', 'images', 'jekyll-serve', 'watch'));
+gulp.task('build', gulp.series('clean', 'css', 'js', 'images', 'jekyll-build'));

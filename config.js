@@ -113,7 +113,6 @@ const images = {
 
 const jekyll = {
   deployDir: '_site',
-  args: ['--watch', '--incremental', '--drafts'],
   port: 4000
 };
 
